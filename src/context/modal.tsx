@@ -61,7 +61,16 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
     <ModalContext.Provider value={values}>
       {children}
       {modalContainer
-        ? createPortal(<>{isOpen ? <ModalWrapper isOpen={isOpen}>{content}</ModalWrapper> : null}</>, modalContainer)
+        ? createPortal(
+            <>
+              {isOpen ? (
+                <ModalWrapper isOpen={isOpen} close={handleClose}>
+                  {content}
+                </ModalWrapper>
+              ) : null}
+            </>,
+            modalContainer,
+          )
         : null}
     </ModalContext.Provider>
   );
@@ -89,14 +98,50 @@ const dimmedStyle = {
 
 const modalWrapperStyle = {
   zIndex: zIndexOrder.modal,
-  flex: 1,
+
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   padding: "24px",
 } as React.CSSProperties;
 
-const ModalWrapper = ({ children, isOpen }: { children: React.ReactNode; isOpen: boolean }) => {
+const ModalWrapper = ({
+  children,
+  isOpen,
+  close,
+}: {
+  children: React.ReactNode;
+  isOpen: boolean;
+  close: () => void;
+}) => {
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    // 실제 클릭 대상과 이벤트 리스너가 적용된 대상이 같을 때만 닫히도록 함
+    // 즉 dimmed 영역 클릭 === dimmed에 이벤트 리스너가 적용된 것
+    if (e.target === e.currentTarget) {
+      close();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  // ESC 키 입력 시 모달 닫기
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, close]);
+
+  // 모달이 닫혀있으면 렌더링하지 않음 aria-modal에 true 속성 적용
+  // 모달 열리면 스크롤 바 숨기기
   useEffect(() => {
     if (isOpen) {
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -113,8 +158,10 @@ const ModalWrapper = ({ children, isOpen }: { children: React.ReactNode; isOpen:
     };
   }, [isOpen]);
 
+  if (!isOpen) return null;
+
   return (
-    <div style={dimmedStyle}>
+    <div style={dimmedStyle} onClick={handleOverlayClick}>
       <div style={modalWrapperStyle}>{children}</div>
     </div>
   );
