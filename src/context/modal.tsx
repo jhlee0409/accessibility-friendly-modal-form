@@ -60,8 +60,63 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ModalContext.Provider value={values}>
       {children}
-      {modalContainer ? createPortal(<>{isOpen ? content : null}</>, modalContainer) : null}
+      {modalContainer
+        ? createPortal(<>{isOpen ? <ModalWrapper isOpen={isOpen}>{content}</ModalWrapper> : null}</>, modalContainer)
+        : null}
     </ModalContext.Provider>
+  );
+};
+
+// ================================
+
+const zIndexOrder = {
+  dimmed: 999,
+  modal: 1000,
+};
+
+const dimmedStyle = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
+  zIndex: zIndexOrder.dimmed,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+} as React.CSSProperties;
+
+const modalWrapperStyle = {
+  zIndex: zIndexOrder.modal,
+  flex: 1,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "24px",
+} as React.CSSProperties;
+
+const ModalWrapper = ({ children, isOpen }: { children: React.ReactNode; isOpen: boolean }) => {
+  useEffect(() => {
+    if (isOpen) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [isOpen]);
+
+  return (
+    <div style={dimmedStyle}>
+      <div style={modalWrapperStyle}>{children}</div>
+    </div>
   );
 };
 
