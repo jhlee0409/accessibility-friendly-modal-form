@@ -1,17 +1,29 @@
-import { useState } from "react";
 import { useModal } from "./context/modal";
+import { ModalForm, type FormData } from "./ModalForm";
+import { useEffect, useRef } from "react";
 
 const ModalFormPage = () => {
-  const { isOpen, open, close } = useModal();
+  const { open, isOpen } = useModal();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const handleSubmit = (data: FormData | null) => {
+    if (data) {
+      alert(`${data.name}님의 정보가 제출되었습니다. ${JSON.stringify(data)}`);
+    }
+  };
+
+  // isOpen false 시에 button focus
+  useEffect(() => {
+    if (!isOpen) {
+      triggerRef.current?.focus();
+    }
+  }, [isOpen]);
+
   return (
     <div>
-      <button onClick={() => open({ content: <div>신청 폼</div> })}>신청 폼 작성하기</button>
-      {isOpen && (
-        <div>
-          <h2>신청 폼</h2>
-          <button onClick={close}>닫기</button>
-        </div>
-      )}
+      <button ref={triggerRef} onClick={() => open({ content: <ModalForm onSubmit={handleSubmit} /> })}>
+        신청 폼 작성하기
+      </button>
     </div>
   );
 };

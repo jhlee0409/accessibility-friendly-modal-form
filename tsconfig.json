@@ -1,12 +1,15 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "target": "es2015",
     "jsx": "react-jsx",
     "module": "preserve",
     "moduleResolution": "bundler",
     "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "downlevelIteration": true,
+    "lib": ["es2022", "dom", "dom.iterable"]
   }
 }
